@@ -12,17 +12,17 @@
         },
         "documentId": {
           "__rl": true,
-          "value": "1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Script Writer",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit?usp=drivesdk"
+          "cachedResultUrl": ""
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
           "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit#gid=0"
+          "cachedResultUrl": ""
         },
         "options": {}
       },
@@ -36,7 +36,7 @@
       ],
       "credentials": {
         "googleSheetsTriggerOAuth2Api": {
-          "id": "E4tplFAbu3wu8ItH",
+          "id": "YOUR_CREDENTIAL_ID",
           "name": "Google Sheets Trigger account"
         }
       }
@@ -84,7 +84,7 @@
           "parameters": [
             {
               "name": "x-api-key",
-              "value": "YOUR_ANTHROPIC_API_KEY_HERE"
+              "value": "YOUR_ANTHROPIC_API_KEY"
             },
             {
               "name": "anthropic-version",
@@ -118,14 +118,14 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "kgRZEVEKfOpnzcfE",
+          "id": "YOUR_CREDENTIAL_ID",
           "name": "Header Auth account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Extract the generated script from Claude's response\nconst claudeResponse = $input.first().json;\nconst previousData = $('Filter Pending Rows').first().json;\n\n// Get the text content from Claude's response\nlet generatedScript = '';\nif (claudeResponse.content && claudeResponse.content[0]) {\n  generatedScript = claudeResponse.content[0].text;\n}\n\n// Count characters\nconst charCount = generatedScript.length;\n\nreturn {\n  json: {\n    Title: previousData.Title,\n    MasterPrompt: previousData.MasterPrompt,\n    RowNumber: previousData.row_number || previousData.RowNumber,\n    GeneratedScript: generatedScript,\n    CharCount: charCount,\n    GeneratedAt: new Date().toISOString()\n  }\n};"
+        "jsCode": "// Extract the generated script from Claude's response\nconst claudeResponse = $input.first().json;\nconst previousData = $('Filter Pending Rows').first().json;\n\n// Get the text content from Claude's response\nlet generatedScript = '';\nif (claudeResponse.content && claudeResponse.content[0]) {\n  generatedScript = claudeResponse.content[0].text;\n}\n\n// Count characters\nconst charCount = generatedScript.length;\n\nreturn {\n  json: {\n    ID: previousData.ID,\n    Title: previousData.Title,\n    MasterPrompt: previousData.MasterPrompt,\n    RowNumber: previousData.row_number || previousData.RowNumber,\n    GeneratedScript: generatedScript,\n    CharCount: charCount,\n    GeneratedAt: new Date().toISOString()\n  }\n};"
       },
       "id": "4a3f4a0b-0834-43b0-85e2-5d648ff4208c",
       "name": "Extract Script Content",
@@ -138,7 +138,7 @@
     },
     {
       "parameters": {
-        "folderId": "1SdrPW39Xcr08jjijubAwiZGWkck50j4g",
+        "folderId": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
         "title": "={{ $json.Title }}"
       },
       "id": "813e60ed-5dac-4e8c-8cc8-97ef49197d74",
@@ -151,14 +151,14 @@
       ],
       "credentials": {
         "googleDocsOAuth2Api": {
-          "id": "Bf9sr8LR0keKMDJl",
+          "id": "YOUR_CREDENTIAL_ID",
           "name": "Google Docs account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Prepare data for document update\nconst docInfo = $input.first().json;\nconst scriptData = $('Extract Script Content').first().json;\n\nreturn {\n  json: {\n    documentId: docInfo.id,\n    documentUrl: `https://docs.google.com/document/d/${docInfo.id}/edit`,\n    Title: scriptData.Title,\n    GeneratedScript: scriptData.GeneratedScript,\n    CharCount: scriptData.CharCount,\n    RowNumber: scriptData.RowNumber\n  }\n};"
+        "jsCode": "// Prepare data for document update\nconst docInfo = $input.first().json;\nconst scriptData = $('Extract Script Content').first().json;\n\nreturn {\n  json: {\n    documentId: docInfo.id,\n    documentUrl: `https://docs.google.com/document/d/${docInfo.id}/edit`,\n    ID: scriptData.ID,\n    Title: scriptData.Title,\n    GeneratedScript: scriptData.GeneratedScript,\n    CharCount: scriptData.CharCount,\n    RowNumber: scriptData.RowNumber\n  }\n};"
       },
       "id": "3f65dedc-309b-437a-a125-d65356c70967",
       "name": "Prepare Doc Data",
@@ -192,7 +192,7 @@
       ],
       "credentials": {
         "googleDocsOAuth2Api": {
-          "id": "Bf9sr8LR0keKMDJl",
+          "id": "YOUR_CREDENTIAL_ID",
           "name": "Google Docs account"
         }
       }
@@ -202,33 +202,43 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Script Writer",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit?usp=drivesdk"
+          "cachedResultUrl": ""
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
           "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit#gid=0"
+          "cachedResultUrl": ""
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
+            "ID": "={{ $('Prepare Doc Data').first().json.ID }}",
             "DocLink": "={{ $('Prepare Doc Data').first().json.documentUrl }}",
             "Status": "Completed",
             "CharCount": "={{ $('Prepare Doc Data').first().json.CharCount }}",
-            "GeneratedAt": "= {{ $now.format('DD, hh:mm') }}",
+            "GeneratedAt": "={{ $now.format('DD, hh:mm') }}",
             "row_number": 0,
-            "Title": "={{ $('Google Sheets Trigger').item.json.Title }}",
-            "MasterPrompt": "={{ $('Google Sheets Trigger').item.json.MasterPrompt }}"
+            "Title": "={{ $('Filter Pending Rows').first().json.Title }}",
+            "MasterPrompt": "={{ $('Filter Pending Rows').first().json.MasterPrompt }}"
           },
           "matchingColumns": [
-            "Title"
+            "ID"
           ],
           "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
             {
               "id": "Title",
               "displayName": "Title",
@@ -311,7 +321,7 @@
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "eGarxz7H5GTklUET",
+          "id": "YOUR_CREDENTIAL_ID",
           "name": "Google Sheets account"
         }
       }
@@ -403,9 +413,9 @@
   },
   "versionId": "10730876-f5f1-450e-bc89-188d6addf9fa",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "510dc0afdd5ec9c3843be833c714a2623974a2058ec95eb59daf867d1c4b0dcb"
+    "templateCredsSetupCompleted": false,
+    "instanceId": ""
   },
-  "id": "cqVJOm7aALa6zuxj",
+  "id": "",
   "tags": []
 }

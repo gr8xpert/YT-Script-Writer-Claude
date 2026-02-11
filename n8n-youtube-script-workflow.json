@@ -1,0 +1,411 @@
+{
+  "name": "YouTube Script Generator - Sheet to Docs",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA",
+          "mode": "list",
+          "cachedResultName": "Script Writer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "2dbe92a7-adda-4f1e-9002-c63b9e0ef480",
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "E4tplFAbu3wu8ItH",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-check-status",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c10aed2d-4a99-40b6-b846-00c4ab8ea882",
+      "name": "Filter Pending Rows",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "YOUR_ANTHROPIC_API_KEY_HERE"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 64000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a professional YouTube scriptwriter. Write a comprehensive, detailed, and engaging YouTube video script.\\n\\nTitle: {{ $json.Title }}\\n\\nMaster Prompt/Instructions:\\n{{ $json.MasterPrompt }}\\n\\nIMPORTANT REQUIREMENTS:\\n- The script MUST be between 32,000 to 38,000 characters long\\n- Include detailed scene descriptions, camera directions, and visual cues\\n- Write engaging hooks, transitions, and call-to-actions\\n- Break down into clear sections with timestamps\\n- Include B-roll suggestions and graphics recommendations\\n- Add presenter notes and emphasis markers\\n- Make it conversational yet professional\\n- Include intro, main content sections, and outro\\n\\nWrite the complete script now:\"\n    }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 600000
+        }
+      },
+      "id": "15a9a673-b326-41ed-949a-473ced33cd2c",
+      "name": "Generate Script with Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kgRZEVEKfOpnzcfE",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract the generated script from Claude's response\nconst claudeResponse = $input.first().json;\nconst previousData = $('Filter Pending Rows').first().json;\n\n// Get the text content from Claude's response\nlet generatedScript = '';\nif (claudeResponse.content && claudeResponse.content[0]) {\n  generatedScript = claudeResponse.content[0].text;\n}\n\n// Count characters\nconst charCount = generatedScript.length;\n\nreturn {\n  json: {\n    Title: previousData.Title,\n    MasterPrompt: previousData.MasterPrompt,\n    RowNumber: previousData.row_number || previousData.RowNumber,\n    GeneratedScript: generatedScript,\n    CharCount: charCount,\n    GeneratedAt: new Date().toISOString()\n  }\n};"
+      },
+      "id": "4a3f4a0b-0834-43b0-85e2-5d648ff4208c",
+      "name": "Extract Script Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "folderId": "1SdrPW39Xcr08jjijubAwiZGWkck50j4g",
+        "title": "={{ $json.Title }}"
+      },
+      "id": "813e60ed-5dac-4e8c-8cc8-97ef49197d74",
+      "name": "Create Google Doc",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Bf9sr8LR0keKMDJl",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare data for document update\nconst docInfo = $input.first().json;\nconst scriptData = $('Extract Script Content').first().json;\n\nreturn {\n  json: {\n    documentId: docInfo.id,\n    documentUrl: `https://docs.google.com/document/d/${docInfo.id}/edit`,\n    Title: scriptData.Title,\n    GeneratedScript: scriptData.GeneratedScript,\n    CharCount: scriptData.CharCount,\n    RowNumber: scriptData.RowNumber\n  }\n};"
+      },
+      "id": "3f65dedc-309b-437a-a125-d65356c70967",
+      "name": "Prepare Doc Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Create Google Doc').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.GeneratedScript }}"
+            }
+          ]
+        }
+      },
+      "id": "b734d483-00d4-4833-8d98-d8c23ab2953c",
+      "name": "Insert Script to Doc",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        0
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Bf9sr8LR0keKMDJl",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA",
+          "mode": "list",
+          "cachedResultName": "Script Writer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TTBXUpZRUu89XPUVJLa5gXD906e7ND0HZA-cc01FTuA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DocLink": "={{ $('Prepare Doc Data').first().json.documentUrl }}",
+            "Status": "Completed",
+            "CharCount": "={{ $('Prepare Doc Data').first().json.CharCount }}",
+            "GeneratedAt": "= {{ $now.format('DD, hh:mm') }}",
+            "row_number": 0,
+            "Title": "={{ $('Google Sheets Trigger').item.json.Title }}",
+            "MasterPrompt": "={{ $('Google Sheets Trigger').item.json.MasterPrompt }}"
+          },
+          "matchingColumns": [
+            "Title"
+          ],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MasterPrompt",
+              "displayName": "MasterPrompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DocLink",
+              "displayName": "DocLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CharCount",
+              "displayName": "CharCount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GeneratedAt",
+              "displayName": "GeneratedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c54e1a57-033d-4bfb-9f02-21ad653da84a",
+      "name": "Update Sheet with Doc Link",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1552,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGarxz7H5GTklUET",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter Pending Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Pending Rows": {
+      "main": [
+        [
+          {
+            "node": "Generate Script with Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Script with Claude": {
+      "main": [
+        [
+          {
+            "node": "Extract Script Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Script Content": {
+      "main": [
+        [
+          {
+            "node": "Create Google Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Google Doc": {
+      "main": [
+        [
+          {
+            "node": "Prepare Doc Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Doc Data": {
+      "main": [
+        [
+          {
+            "node": "Insert Script to Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Script to Doc": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet with Doc Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "10730876-f5f1-450e-bc89-188d6addf9fa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "510dc0afdd5ec9c3843be833c714a2623974a2058ec95eb59daf867d1c4b0dcb"
+  },
+  "id": "cqVJOm7aALa6zuxj",
+  "tags": []
+}

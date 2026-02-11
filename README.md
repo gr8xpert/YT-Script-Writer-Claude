@@ -150,4 +150,4 @@ MIT License - Feel free to use and modify.
 
 ## Author
 
-Created with gr8xper.
+Created with gr8xpert.
